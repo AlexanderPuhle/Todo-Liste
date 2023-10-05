@@ -19,6 +19,16 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 
 public class RegisterActivity extends AppCompatActivity {
     private final String TAG ="RegisterActivity";
@@ -106,7 +116,7 @@ public class RegisterActivity extends AppCompatActivity {
                         }else{
                             Log.d(TAG, "Fehler");
                             Toast.makeText(RegisterActivity.this,
-                                    "Der Nutzer exisitert schon. Bitte melden Sie sich an",
+                                    "E-Mail exisitert schon. Bitte melden Sie sich an",
                                     Toast.LENGTH_LONG).show();
                             RegisterActivity.super.onBackPressed();
                         }
@@ -120,28 +130,22 @@ public class RegisterActivity extends AppCompatActivity {
         vorname = vorNameEdit.getText().toString();
         name = nameEdit.getText().toString();
 
-/*        OkHttpClient client = new OkHttpClient();
-        String postPlayerUrl = "https://qu-iu-zz.beyer-its.de/ins_player.php";
+        OkHttpClient client = new OkHttpClient();
+        String postPlayerUrl = "https://qu-iu-zz.beyer-its.de/TodoListe/ins_kollege.php";
 
         Log.d(TAG, "email " + email);
         RequestBody reqBody = new FormBody.Builder()
                 .add("email", email)
                 .add("vorname", vorname)
                 .add("name", name)
-                .add("strasse", strasse)
-                .add("hausnr", hausnr)
-                .add("plz", plz)
-                .add("ort", ort)
                 .build();
 
         Request request = new Request.Builder().url(postPlayerUrl).post(reqBody).build();
-
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.d(TAG, "Fehler beim Insert: Player: " + e.getMessage());
                 pruefung = "NOK";
-                Toast.makeText(RegisterActivity.this, "Spieler hinzufügen fehlgeschlagen", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, "Kollege hinzufügen fehlgeschlagen", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -152,14 +156,14 @@ public class RegisterActivity extends AppCompatActivity {
                     if (response.isSuccessful()){
                         pruefung = "OK";
                     }else {
-                        Log.d(TAG, "Fehler" + response);
+                        Log.d(TAG, "DB-Fehler" + response);
                         pruefung = "NOK";
                     }
                 }catch (IOException e) {
                     Log.d(TAG, "Exception: " + e.getMessage());
                 }
-
             }
-        });*/
+        });
+
     }
 }
