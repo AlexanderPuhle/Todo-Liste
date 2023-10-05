@@ -47,4 +47,6 @@ dependencies {
 // Import Firebase Messaging
     implementation 'com.google.firebase:firebase-messaging:23.2.1'
     implementation 'com.android.volley:volley:1.2.1'
+// Import OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
 }
