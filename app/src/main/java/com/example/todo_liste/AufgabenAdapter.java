@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.w3c.dom.Text;
@@ -19,18 +20,17 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
 
     private Context context;
     private List<AufgabenZeile> aufgabenListe;
+    //private final AufgabenInterface aufgInter;
 
     public AufgabenAdapter(Context context, List<AufgabenZeile> aufgabenListe) {
         this.context = context;
         this.aufgabenListe = aufgabenListe;
-        Log.d("Adapter", "aufgabenListe: " + aufgabenListe);
+        //this.aufgInter = aufgabenInterface;
     }
 
     @NonNull
     @Override
     public AufgabenViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        //LayoutInflater inflater = LayoutInflater.from(context);
-        //View view = inflater.inflate(R.layout.aufgaben_zeile, null);
         View view =LayoutInflater.from(parent.getContext()).inflate(R.layout.aufgaben_zeile, parent, false);
         return new AufgabenViewHolder(view);
     }
@@ -39,7 +39,6 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
     public void onBindViewHolder(@NonNull AufgabenViewHolder holder, int position) {
         AufgabenZeile zeile = aufgabenListe.get(position);
 
-        Log.d("Adapter", "zeile: " + zeile.getTitel());
         holder.editTitel.setText(zeile.getTitel());
         holder.editPrio.setText(String.valueOf(zeile.getPrio()));
         holder.editFaellig.setText(zeile.getFaellig());
@@ -50,15 +49,32 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
         return aufgabenListe.size();
     }
 
-    class AufgabenViewHolder extends RecyclerView.ViewHolder {
+    public static class AufgabenViewHolder extends RecyclerView.ViewHolder {
 
+        public View aufgZeile;
         TextView editTitel, editPrio, editFaellig;
         public AufgabenViewHolder(@NonNull View itemView) {
             super(itemView);
 
+            aufgZeile = itemView.findViewById(R.id.aufgZeile);
             editTitel = itemView.findViewById(R.id.textTitel);
             editPrio = itemView.findViewById(R.id.textPrio);
             editFaellig = itemView.findViewById(R.id.textFaellig);
+
+           /* itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("SpielterminAdapter", "OnClick sollte ausgeführt werden");
+                    if (aufgabenInterface != null){
+                        int pos = getLayoutPosition();
+                        Log.d("SpielterminAdapter", "Position: " + pos);
+                        if (pos != RecyclerView.NO_POSITION){
+                            aufgabenInterface.onAufgabeClick(pos);
+
+                        }
+                    }
+                }
+            });*/
         }
     }
 }

@@ -14,12 +14,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TodoListe"
         tools:targetApi="31">
+        <activity
+            android:name=".AufgabeActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/new_todo" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id" />
+
         <activity
             android:name=".MainActivity"
             android:exported="false" />
