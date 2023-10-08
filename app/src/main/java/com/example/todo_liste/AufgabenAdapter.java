@@ -20,12 +20,12 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
 
     private Context context;
     private List<AufgabenZeile> aufgabenListe;
-    //private final AufgabenInterface aufgInter;
+    private AufgabenInterface aufgInter;
 
-    public AufgabenAdapter(Context context, List<AufgabenZeile> aufgabenListe) {
+    public AufgabenAdapter(Context context, List<AufgabenZeile> aufgabenListe, AufgabenInterface aufgabenInterface) {
         this.context = context;
         this.aufgabenListe = aufgabenListe;
-        //this.aufgInter = aufgabenInterface;
+        this.aufgInter = aufgabenInterface;
     }
 
     @NonNull
@@ -39,6 +39,12 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
     public void onBindViewHolder(@NonNull AufgabenViewHolder holder, int position) {
         AufgabenZeile zeile = aufgabenListe.get(position);
 
+        holder.aufgZeile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                aufgInter.onAufgabeClick(aufgabenListe.get(position));
+            }
+        });
         holder.editTitel.setText(zeile.getTitel());
         holder.editPrio.setText(String.valueOf(zeile.getPrio()));
         holder.editFaellig.setText(zeile.getFaellig());
@@ -51,7 +57,7 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
 
     public static class AufgabenViewHolder extends RecyclerView.ViewHolder {
 
-        public View aufgZeile;
+        public CardView aufgZeile;
         TextView editTitel, editPrio, editFaellig;
         public AufgabenViewHolder(@NonNull View itemView) {
             super(itemView);

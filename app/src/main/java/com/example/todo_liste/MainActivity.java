@@ -40,7 +40,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity implements AufgabenInterface{
     private static final String TAG = "MainActivity";
     RecyclerView aufgabenView;
     private AufgabenAdapter aufgabenAdapter;
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity{
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        aufgabenAdapter = new AufgabenAdapter(MainActivity.this, aufgabenListe);
+                        aufgabenAdapter = new AufgabenAdapter(MainActivity.this, aufgabenListe, MainActivity.this);
                         aufgabenView.setAdapter(aufgabenAdapter);
                     }
                 });
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity{
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            aufgabenAdapter = new AufgabenAdapter(MainActivity.this, aufgabenListe);
+                            aufgabenAdapter = new AufgabenAdapter(MainActivity.this, aufgabenListe, MainActivity.this);
                             aufgabenView.setAdapter(aufgabenAdapter);
                         }
                     });
@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity{
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            aufgabenAdapter = new AufgabenAdapter(MainActivity.this, aufgabenListe);
+                            aufgabenAdapter = new AufgabenAdapter(MainActivity.this, aufgabenListe, MainActivity.this);
                             aufgabenView.setAdapter(aufgabenAdapter);
                         }
                     });
@@ -293,19 +293,20 @@ public class MainActivity extends AppCompatActivity{
         });
     }
 
-   /* @Override
-    public void onAufgabeClick(int position) {
+    @Override
+    public void onAufgabeClick(AufgabenZeile aufgabenZeile) {
+
         Intent aufgabe = new Intent(MainActivity.this, AufgabeActivity.class);
-        aufgabe.putExtra("id", aufgabenListe.get(position).getId());
-        aufgabe.putExtra("ersteller", aufgabenListe.get(position).getErsteller());
-        aufgabe.putExtra("titel", aufgabenListe.get(position).getTitel());
-        aufgabe.putExtra("beschreibung", aufgabenListe.get(position).getBeschreibung());
-        aufgabe.putExtra("prio", aufgabenListe.get(position).getPrio());
-        aufgabe.putExtra("status", aufgabenListe.get(position).getStatus());
-        aufgabe.putExtra("erstellt", aufgabenListe.get(position).getErstellt());
-        aufgabe.putExtra("faellig", aufgabenListe.get(position).getFaellig());
-        aufgabe.putExtra("zustaendig", aufgabenListe.get(position).getZustaendig());
-        aufgabe.putExtra("stichwort", aufgabenListe.get(position).getStichwort());
+        aufgabe.putExtra("id", aufgabenZeile.getId());
+        aufgabe.putExtra("ersteller", aufgabenZeile.getErsteller());
+        aufgabe.putExtra("titel", aufgabenZeile.getTitel());
+        aufgabe.putExtra("beschreibung", aufgabenZeile.getBeschreibung());
+        aufgabe.putExtra("prio", aufgabenZeile.getPrio());
+        aufgabe.putExtra("status", aufgabenZeile.getStatus());
+        aufgabe.putExtra("erstellt", aufgabenZeile.getErstellt());
+        aufgabe.putExtra("faellig", aufgabenZeile.getFaellig());
+        aufgabe.putExtra("zustaendig", aufgabenZeile.getZustaendig());
+        aufgabe.putExtra("stichwort", aufgabenZeile.getStichwort());
         startActivity(aufgabe);
-    }*/
+    }
 }
