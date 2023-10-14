@@ -45,19 +45,20 @@
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
+        android:layout_marginStart="13dp"
         android:layout_marginTop="16dp"
         android:text="Logout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/todoListe" />
 
     <Button
-        android:id="@+id/btnDaten"
+        android:id="@+id/btnAddAufgabe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="15dp"
-        android:text="Ihre Daten"
+        android:layout_marginEnd="18dp"
+        android:text="neue Aufgabe"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/todoListe" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

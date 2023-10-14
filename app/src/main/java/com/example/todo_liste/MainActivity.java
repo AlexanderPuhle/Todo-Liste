@@ -7,28 +7,22 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.util.JsonReader;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Api;
-import com.google.android.material.tabs.TabLayout;
+import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import okhttp3.Call;
@@ -64,16 +58,33 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
         ItemTouchHelper itemSwipeHelper = new ItemTouchHelper(swipeHelper);
         itemSwipeHelper.attachToRecyclerView(aufgabenView);
 
-        //Ausgewählte Aufgabe anpassen
-        /*aufgabenAdapter.setOnClickListener(new AufgabenAdapter.OnClickListener() {
+        Button addAufgabe = findViewById(R.id.btnAddAufgabe);
+        addAufgabe.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(int position, AufgabenZeile zeile) {
-                Intent aufgabe = new Intent(MainActivity.this, AufgabeActivity.class);
-                startActivity(aufgabe);
+            public void onClick(View v) {
+                Intent addAufgabe = new Intent(MainActivity.this, AufgabeActivity.class);
+                addAufgabe.putExtra("bearbeitungsart", "insert");
+                startActivity(addAufgabe);
             }
-        });*/
+        });
 
-
+        Button logoutButton = findViewById(R.id.btnLogout);
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AuthUI.getInstance()
+                        .signOut(MainActivity.this)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            public void onComplete(@NonNull Task<Void> task) {
+                                Toast.makeText(MainActivity.this, "Erfolgreich abgemeldet",
+                                        Toast.LENGTH_SHORT).show();
+                                Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                                finish();
+                                startActivity(loginIntent);
+                            }
+                        });
+            }
+        });
     }
 
     private void getAufgaben() {
@@ -165,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 }
             }
         });
+        selAufgaben.connectionPool().evictAll();
     }
     ItemTouchHelper.SimpleCallback swipeHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
         @Override
@@ -208,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 .add("zustaendig", aufgabenListe.get(pos).getZustaendig())
                 .add("stichwort", aufgabenListe.get(pos).getStichwort())
                 .build();
-        Log.d(TAG, "Body: " + reqBody.toString());
+
         Request request = new Request.Builder()
                 .url(updAufgabeUrl)
                 .post(reqBody)
@@ -247,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 }
             }
         });
+        updAufgabe.connectionPool().evictAll();
     }
 
     private void deleteItem(int pos) {
@@ -291,6 +304,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 }
             }
         });
+        delAufgabe.connectionPool().evictAll();
     }
 
     @Override
@@ -307,6 +321,8 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
         aufgabe.putExtra("faellig", aufgabenZeile.getFaellig());
         aufgabe.putExtra("zustaendig", aufgabenZeile.getZustaendig());
         aufgabe.putExtra("stichwort", aufgabenZeile.getStichwort());
+        aufgabe.putExtra("bearbeitungsart", "update");
         startActivity(aufgabe);
+        aufgabenAdapter.updateData(aufgabenListe);
     }
 }
