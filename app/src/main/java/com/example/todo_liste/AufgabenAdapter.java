@@ -1,5 +1,6 @@
 package com.example.todo_liste;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,7 +37,7 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AufgabenViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull AufgabenViewHolder holder, @SuppressLint("RecyclerView") int position) {
         AufgabenZeile zeile = aufgabenListe.get(position);
 
         holder.aufgZeile.setOnClickListener(new View.OnClickListener() {
@@ -55,6 +56,12 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
         return aufgabenListe.size();
     }
 
+    public void updateData(List<AufgabenZeile> newData) {
+        aufgabenListe.clear();
+        aufgabenListe.addAll(newData);
+        notifyDataSetChanged();
+    }
+
     public static class AufgabenViewHolder extends RecyclerView.ViewHolder {
 
         public CardView aufgZeile;
@@ -66,21 +73,6 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
             editTitel = itemView.findViewById(R.id.textTitel);
             editPrio = itemView.findViewById(R.id.textPrio);
             editFaellig = itemView.findViewById(R.id.textFaellig);
-
-           /* itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.d("SpielterminAdapter", "OnClick sollte ausgeführt werden");
-                    if (aufgabenInterface != null){
-                        int pos = getLayoutPosition();
-                        Log.d("SpielterminAdapter", "Position: " + pos);
-                        if (pos != RecyclerView.NO_POSITION){
-                            aufgabenInterface.onAufgabeClick(pos);
-
-                        }
-                    }
-                }
-            });*/
         }
     }
 }
