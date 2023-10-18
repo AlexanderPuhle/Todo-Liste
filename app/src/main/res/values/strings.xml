@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">TodoListe</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string-array name="sortierung">
+        <item> </item>
+        <item>Titel</item>
+        <item>Eigene offene Aufgaben</item>
+        <item>Zuständig</item>
+        <item>Fälligkeit</item>
+        <item>Erstellt am</item>
+        <item>Priorität</item>
+        <item>Status und Fälligkeit</item>
+    </string-array>
 </resources>

@@ -6,16 +6,22 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +29,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import okhttp3.Call;
@@ -34,22 +42,30 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity implements AufgabenInterface{
+public class MainActivity extends AppCompatActivity implements AufgabenInterface, AdapterView.OnItemSelectedListener {
     private static final String TAG = "MainActivity";
     RecyclerView aufgabenView;
     private AufgabenAdapter aufgabenAdapter;
     List<AufgabenZeile> aufgabenListe;
+   // List<AufgabenZeile> selectedAufgaben;
+    private String ersteller, sortierenNach;
+    private int lauf = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //aufgabenAdapter = new AufgabenAdapter(this, aufgabenListe);
+        Spinner sort = findViewById(R.id.spinnerSort);
         aufgabenView = findViewById(R.id.todoListe);
         aufgabenView.setAdapter(aufgabenAdapter);
         aufgabenView.setLayoutManager(new LinearLayoutManager(this));
         aufgabenListe = new ArrayList<>();
+
+        ArrayAdapter<CharSequence>sortAdapter = ArrayAdapter.createFromResource(this, R.array.sortierung, android.R.layout.simple_spinner_item);
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sort.setAdapter(sortAdapter);
+        sort.setOnItemSelectedListener(this);
 
         //Laden aller Aufgaen in die RecyclerView
         getAufgaben();
@@ -59,11 +75,14 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
         itemSwipeHelper.attachToRecyclerView(aufgabenView);
 
         Button addAufgabe = findViewById(R.id.btnAddAufgabe);
+        getZustaendig();
         addAufgabe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Intent addAufgabe = new Intent(MainActivity.this, AufgabeActivity.class);
                 addAufgabe.putExtra("bearbeitungsart", "insert");
+                addAufgabe.putExtra("ersteller", ersteller);
                 startActivity(addAufgabe);
             }
         });
@@ -83,6 +102,55 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                                 startActivity(loginIntent);
                             }
                         });
+            }
+        });
+    }
+
+    private void getZustaendig() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String userMail = user.getEmail();
+
+        OkHttpClient clientZustaendig = new OkHttpClient();
+        String getZustaendig = "https://qu-iu-zz.beyer-its.de/TodoListe/sel_kollegen.php?email="+userMail;
+
+        Request requestZustaendig = new Request.Builder().url(getZustaendig).build();
+
+        clientZustaendig.newCall(requestZustaendig).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "SQL-Fehler: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+                Log.d(TAG, "Error Request: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (!response.isSuccessful()){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Fehler ermitteln Zuständiger: " + response.body(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    Log.d(TAG, "Fehler ermitteln Zuständiger: " + response.body().string());
+                }else{
+                    String resp = response.body().string();
+                    try {
+                        JSONArray mitarbeiterArray = new JSONArray(resp);
+                        String name;
+
+                        for (int i = 0; i < mitarbeiterArray.length(); i++) {
+                            JSONObject zustaendigObject = mitarbeiterArray.getJSONObject(i);
+                            ersteller = zustaendigObject.getString("name") + ", " + zustaendigObject.getString("vorname");
+                        }
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         });
     }
@@ -190,7 +258,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
 
             switch (direction){
                 case ItemTouchHelper.LEFT:
-                    Log.d(TAG, "Position: " + pos);
                     deleteItem(pos);
                     aufgabenListe.remove(pos);
                     aufgabenView.getAdapter().notifyItemRemoved(pos);
@@ -249,7 +316,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                         }
                     });
                 }else{
-                    Log.d(TAG, "Response: " + response);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -324,5 +390,47 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
         aufgabe.putExtra("bearbeitungsart", "update");
         startActivity(aufgabe);
         aufgabenAdapter.updateData(aufgabenListe);
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        sortierenNach = parent.getItemAtPosition(position).toString();
+
+        if (sortierenNach.isEmpty() && lauf == 0){
+            lauf = 1;
+            return;
+        }
+
+        Collections.sort(aufgabenListe, new Comparator<AufgabenZeile>() {
+
+            @Override
+            public int compare(AufgabenZeile o1, AufgabenZeile o2) {
+                switch (sortierenNach){
+                    case "Eigene offene Aufgaben":
+                        Log.d(TAG, "eigene Aufgaben: " + ersteller);
+                        aufgabenAdapter.getFilter().filter(ersteller);
+                        Log.d(TAG, "Filter hat geklappt");
+                        return o1.titel.compareToIgnoreCase(o2.titel);
+                    case "Zuständig":
+                        return o1.zustaendig.compareToIgnoreCase(o2.zustaendig);
+                    case "Fälligkeit":
+                        return o1.faellig.compareToIgnoreCase(o2.faellig);
+                    case "Erstellt am":
+                        return o1.erstellt.compareToIgnoreCase(o2.erstellt);
+                    case "Status und Fälligkeit":
+                        return o1.erstellt.compareToIgnoreCase(o2.erstellt);
+                    case "Priorität":
+                        return (String.valueOf(o1.prio)).compareToIgnoreCase(String.valueOf(o2.prio));
+                    default:
+                        return (String.valueOf(o1.id)).compareToIgnoreCase(String.valueOf(o2.id));
+                }
+            }
+        });
+        aufgabenAdapter.sortAufgabenListe(aufgabenListe);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }
