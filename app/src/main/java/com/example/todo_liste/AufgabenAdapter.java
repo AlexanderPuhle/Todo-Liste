@@ -20,14 +20,12 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.AufgabenViewHolder> implements Filterable{
+public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.AufgabenViewHolder>{
 
     private static final String TAG = "AufgabenAdapter";
     private Context context;
     private List<AufgabenZeile> aufgabenListe;
     private AufgabenInterface aufgInter;
-    private List<AufgabenZeile> sortAufgabenListe;
-    private List<AufgabenZeile> selectedAufgaben;
 
     public AufgabenAdapter(Context context, List<AufgabenZeile> aufgabenListe, AufgabenInterface aufgabenInterface) {
         this.context = context;
@@ -71,49 +69,12 @@ public class AufgabenAdapter extends RecyclerView.Adapter<AufgabenAdapter.Aufgab
         notifyDataSetChanged();
     }
 
-    public void sortAufgabenListe(List<AufgabenZeile> sortedAufgabenListe){
+    public void List(List<AufgabenZeile> sortedAufgabenListe){
         this.aufgabenListe = sortedAufgabenListe;
         notifyDataSetChanged();
     }
 
-    private Filter searchedAufgabe = new Filter() {
-        @Override
-        protected FilterResults performFiltering(CharSequence constraint) {
-            Log.d(TAG, "Länge: " + constraint.length());
-            //selectedAufgaben = new AufgabenZeile();
-            if (constraint == null || constraint.length() == 0){
-                selectedAufgaben = aufgabenListe;
-                Log.d(TAG, "Kein Ergebnis");
-            }else {
-                String filter = constraint.toString().toLowerCase().trim();
-                for (AufgabenZeile zeile : aufgabenListe){
-                    if (zeile.getZustaendig().toLowerCase().contains(filter)){
-                        selectedAufgaben.add(zeile);
-                        Log.d(TAG, "gefundene Aufgabe: " + zeile);
-                    }
-                }
-            }
-            FilterResults foundAufgabe = new FilterResults();
-            foundAufgabe.values = selectedAufgaben;
-            Log.d(TAG, "result gesetzt");
-            return foundAufgabe;
-        }
-
-        @Override
-        protected void publishResults(CharSequence constraint, FilterResults results) {
-            aufgabenListe.clear();
-            Log.d(TAG, "aufgabenListe gelöscht");
-            aufgabenListe.addAll((List) results.values);
-            Log.d(TAG, "aufgbabenliste Gefüllt");
-        }
-    };
-
-    @Override
-    public Filter getFilter() {
-        return searchedAufgabe;
-    }
-
-    public static class AufgabenViewHolder extends RecyclerView.ViewHolder {
+   public static class AufgabenViewHolder extends RecyclerView.ViewHolder {
         public CardView aufgZeile;
         TextView editTitel, editPrio, editFaellig, editZustaendig, editErstellt, editStatus;
         public AufgabenViewHolder(@NonNull View itemView) {
