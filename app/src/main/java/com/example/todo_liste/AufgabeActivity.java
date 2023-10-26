@@ -16,9 +16,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,7 +41,6 @@ public class AufgabeActivity extends AppCompatActivity implements AdapterView.On
     private String bearbeitungsart;
     private String selectedStatus;
     private String selectedMitarbeiter;
-    private String email;
 
     ArrayList<String> statusListe;
 
@@ -70,41 +66,31 @@ public class AufgabeActivity extends AppCompatActivity implements AdapterView.On
         Button btnSichern = findViewById(R.id.btnSichern);
 
         //ArrayListen für Spinner Status und Zuständig initialisieren
-        statusListe = new ArrayList<String>();
-        zustaendigListe = new ArrayList<String>();
+        statusListe = new ArrayList<>();
+        zustaendigListe = new ArrayList<>();
 
         //Klick-Aktion für Buttons setzen
-        btnAbbruch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AufgabeActivity.super.onBackPressed();
-                goBack();
-            }
+        btnAbbruch.setOnClickListener(view -> {
+            AufgabeActivity.super.onBackPressed();
+            goBack();
         });
 
-        btnSichern.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String check = "true";
-                if (bearbeitungsart.equals("update")) {
-                    detailURL = "upd_aufgabe.php";
-                }else{
-                    String checkTitel = editTitel.getText().toString();
-                    if (checkTitel.isEmpty()){
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(AufgabeActivity.this, "Titel muss gefüllt sein", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        check = "false";
-                    }
-                    detailURL = "ins_aufgabe.php";
+        btnSichern.setOnClickListener(v -> {
+            String check = "true";
+            if (bearbeitungsart.equals("update")) {
+                detailURL = "upd_aufgabe.php";
+            }else{
+                String checkTitel = editTitel.getText().toString();
+                if (checkTitel.isEmpty()){
+                    runOnUiThread(() -> Toast.makeText(AufgabeActivity.this,
+                            "Titel muss gefüllt sein", Toast.LENGTH_LONG).show());
+                    check = "false";
                 }
-                if (check.equals("true")){
-                    datenSichern();
-                    goBack();
-                }
+                detailURL = "ins_aufgabe.php";
+            }
+            if (check.equals("true")){
+                datenSichern();
+                goBack();
             }
         });
 
@@ -253,30 +239,18 @@ public class AufgabeActivity extends AppCompatActivity implements AdapterView.On
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(AufgabeActivity.this, "Datenbankfehler: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
+                runOnUiThread(() -> Toast.makeText(AufgabeActivity.this, "Datenbankfehler: " +
+                        e.getMessage(), Toast.LENGTH_LONG).show());
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
                 if (!response.isSuccessful()){
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(AufgabeActivity.this, "Fehler beim Aufnehmen: " + response, Toast.LENGTH_LONG).show();
-                        }
-                    });
+                    runOnUiThread(() -> Toast.makeText(AufgabeActivity.this,
+                            "Fehler beim Aufnehmen: " + response, Toast.LENGTH_LONG).show());
                 }else{
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(AufgabeActivity.this, "Aufgabe aufgenommen", Toast.LENGTH_LONG).show();
-                        }
-                    });
+                    runOnUiThread(() -> Toast.makeText(AufgabeActivity.this, "Aufgabe aufgenommen",
+                            Toast.LENGTH_LONG).show());
                 }
             }
         });

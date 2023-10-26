@@ -60,4 +60,8 @@ public class AufgabenZeile {
     public int getPrio() {
         return prio;
     }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

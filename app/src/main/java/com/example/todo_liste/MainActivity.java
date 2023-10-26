@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
     RecyclerView aufgabenView;
     private AufgabenAdapter aufgabenAdapter;
     List<AufgabenZeile> aufgabenListe;
-   // List<AufgabenZeile> selectedAufgaben;
+    List<AufgabenZeile> aufgabenListeAlt;
     private String ersteller, sortierenNach;
     private int lauf = 0;
 
@@ -61,11 +60,10 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
         aufgabenView.setAdapter(aufgabenAdapter);
         aufgabenView.setLayoutManager(new LinearLayoutManager(this));
         aufgabenListe = new ArrayList<>();
+        aufgabenListeAlt = new ArrayList<>();
 
         ArrayAdapter<CharSequence>sortAdapter = ArrayAdapter.createFromResource(this, R.array.sortierung, android.R.layout.simple_spinner_item);
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sort.setAdapter(sortAdapter);
-        sort.setOnItemSelectedListener(this);
 
         //Laden aller Aufgaen in die RecyclerView
         getAufgaben();
@@ -83,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 Intent addAufgabe = new Intent(MainActivity.this, AufgabeActivity.class);
                 addAufgabe.putExtra("bearbeitungsart", "insert");
                 addAufgabe.putExtra("ersteller", ersteller);
+                finish();
                 startActivity(addAufgabe);
             }
         });
@@ -104,6 +103,9 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                         });
             }
         });
+
+        sort.setAdapter(sortAdapter);
+        sort.setOnItemSelectedListener(this);
     }
 
     private void getZustaendig() {
@@ -141,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                     String resp = response.body().string();
                     try {
                         JSONArray mitarbeiterArray = new JSONArray(resp);
-                        String name;
 
                         for (int i = 0; i < mitarbeiterArray.length(); i++) {
                             JSONObject zustaendigObject = mitarbeiterArray.getJSONObject(i);
@@ -203,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                     });
 
                     Log.d(TAG, "Error select Aufgaben: " + response.message());
-                    return;
                 }else{
                     try {
                         String resp = response.body().string();
@@ -242,6 +242,9 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                     });
 
                 }
+
+                //Aktuelle Liste für Sortierung und Filterung sichern
+                aufgabenListeAlt = aufgabenListe;
             }
         });
         selAufgaben.connectionPool().evictAll();
@@ -265,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 case ItemTouchHelper.RIGHT:
                     //erledigt
                     setErledigt(pos);
+                    aufgabenListe.get(pos).setStatus("Erledigt");
                     aufgabenView.getAdapter().notifyItemChanged(pos);
                     break;
             }
@@ -272,8 +276,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
     };
 
     private void setErledigt(int pos) {
-        int updID = aufgabenListe.get(pos).getId();
-
         OkHttpClient updAufgabe = new OkHttpClient();
         String updAufgabeUrl = "https://qu-iu-zz.beyer-its.de/TodoListe/upd_aufgabe.php";
 
@@ -306,7 +308,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                String reqBody = response.body().string();
 
                 if (!response.isSuccessful()){
                     runOnUiThread(new Runnable() {
@@ -351,7 +352,6 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                String resp = response.body().string();
 
                 if (!response.isSuccessful()) {
                     runOnUiThread(new Runnable() {
@@ -395,11 +395,36 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         sortierenNach = parent.getItemAtPosition(position).toString();
+        List<AufgabenZeile> filterdAufgaben = new ArrayList<>();
 
         if (sortierenNach.isEmpty() && lauf == 0){
             lauf = 1;
             return;
         }
+
+        if (sortierenNach.equals("Eigene offene Aufgaben")){
+            String searchErsteller = ersteller.toLowerCase().trim();
+
+            for (AufgabenZeile zeile : aufgabenListe){
+                String filterZustaendig = zeile.getZustaendig().toLowerCase().trim();
+                String filterErsteller = zeile.getErsteller().toLowerCase().trim();
+
+                if (zeile.getStatus().equals("Offen")){
+                    if (searchErsteller.equals(filterZustaendig)){
+                        filterdAufgaben.add(zeile);
+                    }else if (filterZustaendig.isEmpty()
+                          && searchErsteller.equals(filterErsteller)) {
+                        filterdAufgaben.add(zeile);
+                    }
+                }
+            }
+        }else{
+            for (AufgabenZeile zeile : aufgabenListeAlt){
+                filterdAufgaben.add(zeile);
+            }
+        }
+
+        aufgabenListe = filterdAufgaben;
 
         Collections.sort(aufgabenListe, new Comparator<AufgabenZeile>() {
 
@@ -407,17 +432,14 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
             public int compare(AufgabenZeile o1, AufgabenZeile o2) {
                 switch (sortierenNach){
                     case "Eigene offene Aufgaben":
-                        Log.d(TAG, "eigene Aufgaben: " + ersteller);
-                        aufgabenAdapter.getFilter().filter(ersteller);
-                        Log.d(TAG, "Filter hat geklappt");
-                        return o1.titel.compareToIgnoreCase(o2.titel);
+                        return o1.faellig.compareToIgnoreCase(o2.faellig);
                     case "Zuständig":
                         return o1.zustaendig.compareToIgnoreCase(o2.zustaendig);
                     case "Fälligkeit":
                         return o1.faellig.compareToIgnoreCase(o2.faellig);
                     case "Erstellt am":
                         return o1.erstellt.compareToIgnoreCase(o2.erstellt);
-                    case "Status und Fälligkeit":
+                    case "Status":
                         return o1.erstellt.compareToIgnoreCase(o2.erstellt);
                     case "Priorität":
                         return (String.valueOf(o1.prio)).compareToIgnoreCase(String.valueOf(o2.prio));
@@ -426,7 +448,7 @@ public class MainActivity extends AppCompatActivity implements AufgabenInterface
                 }
             }
         });
-        aufgabenAdapter.sortAufgabenListe(aufgabenListe);
+        aufgabenAdapter.List(aufgabenListe);
     }
 
     @Override
